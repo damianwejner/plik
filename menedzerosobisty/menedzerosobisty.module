@@ -1,0 +1,250 @@
+<?php 
+function menedzerosobisty_menu(){
+    //Zachowujemy  nazewnictwo jak w projekcie w tym przypadku "menedzer"
+    //poniewarz drupal musi rozpoznać elementy skłądowe projektu.
+    //Zmienne oznaczamy $zmienna .
+    /**
+     * "elementy" są to elementy składowe tablicy array
+     * "title" - nazwa która jest wyswietlana
+     * "page callback" - określa nazwę funkcji z której skorzystamy ,
+     * która zostanie zwrócona w postaci return.
+     * "access callback" = zwraca elementy "TRUE"
+     */
+    $elementy['user/%/menedzerosobisty'] = array(
+        'title' => 'Moj Menedzer Osobisty',
+        'page callback' => '_menedzerosobisty_list',
+        'page arguments' => array(1),
+        'type' => MENU_LOCAL_TASK, //dzięki temu możemy zobaczyć w Koncie Użytkownika
+        'access callback' => 'menedzerosobisty_access',
+        'access arguments' => array(1),
+        );
+    $elementy['menedzerosobisty/new'] = array(
+        'title' => 'Stworz wpis',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('menedzerosobisty_create'),
+        'access callback' => 'user_access',
+        'access arguments' => array('access menedzera'),
+        );
+     $elementy['menedzerosobisty/%menedzerosobisty/edit'] = array(
+        'title' => 'Edytuj Menedzer Osobisty',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('menedzerosobisty_edit',1),
+        'access callback' => 'menedzerosobisty_access',
+        'access arguments' => array('update',1),
+        
+        );
+     $elementy['menedzerosobisty/%menedzerosobisty/delete'] = array(
+    'title' => 'Usuń wpis',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('menedzerosobisty_delete', 1),
+    'access callback' => 'menedzerosobisty_access',
+    'access arguments' => array('delete', 1),
+          );
+      
+  
+    return $elementy;
+}
+//funcja nadająca uprawnienia
+//Należy pamiętać że trzeba w zakłacce People/permissions nadajemy uprawnienia autentycznemu
+//użytkownikowi i administratorowi i właśnie po to jest stworzona ta funkcja.
+//domyślnie nikt nie ma uprawnień do korzystania.
+function menedzerosobisty_permission(){
+    return array(
+      'access menedzera' => array(
+          'title' => t('Access menedzera'),
+          'description' => t('Tablica do tworzenia , edytowania i przeglądania wpisow'),
+          
+      ),
+    );
+}
+//Funkcja zabezpieczjąca przed przeglądaniem naszych zadań przez innych użytkowników
+//Tam są nasze osobiste notatki
+//W skrócie Administrator odrazu może wszystko przeglądac, lecz zarejestrowani użytkownicy przeględają
+//tylko swoje notatki.
+function menedzerosobisty_access($uid){
+     global $user;
+  if( user_access('access menedzera')=== FALSE){
+    return FALSE;
+}
+if(user_access('administer content')) {
+    return TRUE;
+} 
+
+   
+    return $user->uid == $id->uid; 
+    
+
+}
+/**
+ * Funkcja pozwala nam załadować odpowiedni wpis który bedziemy edytować badź 
+ * usówać .
+ */
+function menedzerosobisty_load($id) {
+  return db_select('menedzerosobisty')->fields('menedzerosobisty')->condition('id', $id)->execute()->fetch();
+}
+  
+
+//nazwa funkcji menedzerosobisty_create ma znaczenie 
+// framework wie że tworzymy nowa rzecz
+function menedzerosobisty_create($form , &$form_state){
+    $form['title'] = array(
+      '#type' =>  'textfield', 
+      '#title' => t('Twoj Wpis: '),
+      '#required' => TRUE,
+      //required zabezpieczenie przed pustym polem
+    );
+    $form['zatwierdz'] = array(
+        '#type' => 'submit',
+        '#value' => t('Stworz nowe'),        
+);
+return $form;
+}
+
+//nazwa funkcji menedzerosobisty_create_submit ma znaczenie 
+//framework wie że tworzymy nowa rzecz i ją dodajemy do bazy danych.
+function menedzerosobisty_create_submit(&$form , &$form_state){
+    global $user;
+    //Pobierana jest wartosc i umieszczana w zmiennej title
+    $title = $form_state['values']['title'];
+    //Należy pamietać że title i created to są nazwy kolumn które są wypełniane
+    //title jest umieszczany w ko9lumnie title a 
+    // czas jest ustawiany przez REQUEST_TIME
+    db_insert('menedzerosobisty')
+    ->fields(array('title','created','uid'), array($title,REQUEST_TIME,$user->uid))->execute();
+    //Przejście z powrotem do poczatkowego okienka menedzera osobistego $form_state['redirect']
+    // w tym przypadku musi się odwołać do konkretnego linku do naszego konta.
+    //zmienna $user przechowuje index aktualnego użytkownika i ustawia w przegladarce odpowiedni numer konta.
+   $form_state['redirect'] = "user/$user->uid/menedzerosobisty";
+}
+
+function menedzerosobisty_edit($form , &$form_state, $menedzerosobisty){
+   
+   
+    $form['menedzerosobisty_id'] = array(
+        '#type' => 'value',
+        '#default_value' => $menedzerosobisty->id,
+    );
+    $form['title'] = array(
+      '#type' =>  'textfield',
+      '#title' => t('Twoj Wpis: '),
+      '#required' => TRUE,
+      //required zabezpieczenie przed pustym polem
+        '#deafault_value' => $menedzerosobisty->title,
+    );
+    
+    $form['zatwierdz'] = array(
+        '#type' => 'submit',
+        '#value' => t('Zapisz'),        
+);
+return $form;
+}
+
+//nazwa funkcji menedzerosobisty_create_submit ma znaczenie 
+//framework wie że tworzymy nowa rzecz i ją dodajemy do bazy danych.
+function menedzerosobisty_edit_submit(&$form , &$form_state){
+    global $user;
+     $id = $form_state['values']['menedzerosobisty_id'];
+    //Pobierana jest wartosc i umieszczana w zmiennej $title
+    $title = $form_state['values']['title'];
+    //Należy pamietać że title i created to są nazwy kolumn które są wypełniane
+    //title jest umieszczany w ko9lumnie title a 
+    // czas jest ustawiany przez REQUEST_TIME
+   
+   db_update('menedzerosobisty')
+    ->fields(array('title' => $title))
+    ->condition('id', $id)
+    ->execute();
+    //Przejście z powrotem do poczatkowego okienka menedzera osobistego $form_state['redirect']
+    // w tym przypadku musi się odwołać do konkretnego linku do naszego konta.
+    //zmienna $user przechowuje index aktualnego użytkownika i ustawia w przegladarce odpowiedni numer konta.
+   $form_state['redirect'] = "user/$user->uid/menedzerosobisty";
+}
+
+function menedzerosobisty_delete($form, &$form_state, $menedzerosobisty) {
+  $form['menedzerosobisty_id'] = array(
+    '#type' => 'value',
+    '#default_value' => $menedzerosobisty->id,
+  );
+  $form['confirmation'] = array(
+    '#type' => 'markup',
+    '#value' => t('Are you sure you want to delete: %menedzerosobisty', array('%menedzerosobisty' => $menedzerosobisty->title)),
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Delete'),
+    '#submit' => array('menedzerosobisty_delete_confirmed'),
+  );
+  $form['cancel'] = array(
+    '#type' => 'submit',
+    '#value' => t('Cancel'),
+  );
+  return $form;
+}
+
+function menedzerosobisty_delete_submit(&$form, &$form_state) {
+  global $user;
+  $form_state['redirect'] = "user/$user->uid/menedzerosobisty";
+}
+
+function menedzerosobisty_delete_confirmed(&$form, &$form_state) {
+  $id = $form_state['values']['menedzerosobisty_id'];
+  // Zmienna retval umożliwia usuniecie z bazy danych
+  $retval = db_delete('menedzerosobisty')->condition('id', $id)->execute();
+  if($retval === 1) {
+    drupal_set_message(t('menedzerosobisty deleted'));
+  } else {
+    drupal_set_message(t('Failed to delete menedzerosobisty'), 'error');
+  }
+   
+   
+  menedzerosobisty_delete_submit($form, $form_state);
+}
+
+function _menedzerosobisty_list($uid){
+    /**
+     * ====================INFORMACJA==============================
+     *  Literka " l " po funkcji return oznacza stworzenie
+     *  nowego linku w który będzie można kliknąć
+     *   przykład : return l(' Stworz nowe menedzerosobisty' , 'menedzerosobisty/new');
+     * ============================================================
+     */
+    
+    /**
+     * ====================INFORMACJA==============================
+     * '#theme' oznacza motyw którego używamy
+     * '#type' tu oznacza w jak jest sortowana lista
+     * '#title' napis wyświetlony
+     * '#items' oznacza elementy które wystepują
+     * ============================================================
+    */
+    return array(
+        //zostaje pobrany motyw z funkcji  menedzerosobisty_theme()
+        '#theme' => 'menedzerosobisty_list',
+        '#items' => _menedzerosobisty_pobiera_wpisy($uid),
+        '#title' => t('Moje osobiste wpisy:'),
+    );
+    
+}
+function _menedzerosobisty_pobiera_wpisy($uid)
+{
+    //Funkcja odpowiadająca za pobranie i zwrócenie wyników z bazy danych.
+    //db_query to funkcja do zapytań SQL
+    //funkcja fetchCol() pobiera kolumnę która nas interesuje aby się wyświetlała.
+    //$tytul = db_query('SELECT title FROM menedzerosobisty')->fetchCol();
+    return db_select('menedzerosobisty')
+    ->fields('menedzerosobisty',array('id','title'))
+    ->condition('uid',$uid)
+    ->execute()
+    ->fetchAll();
+   // return $tytul;    
+}
+
+function menedzerosobisty_theme(){
+    return array(
+    'menedzerosobisty_list' => array(
+        'variables' => array('items'=>array(),'title' => NULL),
+       'template' => 'menedzerosobisty-list',
+        
+    ),
+  );
+}
