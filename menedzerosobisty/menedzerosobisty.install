@@ -1,0 +1,74 @@
+<?php
+function menedzerosobisty_schema() {
+    //Ważna informacja: Przed wprowadzeniem nowego modułu.install w "życie" należy wyłączyć i odinstaklować stare wersje tabelek 
+    //następnie wystarczy tylko włączyć moduł w drupalu , on automatycznie stworzy tabelke w bazie danych.
+    //Nalezy pamietac o nazwie menedzer o takiej nazwie bedziemy mieli tabelke w bazie danych.
+    
+  $schematinstalacjibazydanych['menedzerosobisty'] = array(
+    'description' => 'Tabela do przechowywania listy menedzera',
+    'fields' => array(
+      'id' => array(
+        'description' => 'To jest klucz główny w menedzer elementach',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+        //uid oznaczacza user id -> id użytkownika.
+        'uid' => array(
+            'desription' => 'uzytkownik (user).uid, tworzy swoje wpisy do menedzera ',
+            'type' => 'int',
+            'not null' => TRUE,
+            'default' => 0,
+      ),
+        // Z tej kolumny są pobierane nasze wpisy
+      'title' => array(
+        'description' => 'Napis w elementach menedzera',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+        //W tej kolumnie jest wpisany czas utworzenia
+      'created' => array(
+        'description' => 'Unix timestamp w momencie tworzenia elementu',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+      //indeksowanie uzytkowników
+      'indexes' => array(
+          'uid' => array ('uid'),
+      ),
+      // klucze obce
+      'foreign keys' => array(
+       'wpisy_autor'  => array(
+           'table' => 'users',
+           'columns'=> array(
+               'uid' =>'uid',
+           ),
+       ),  
+      ),
+      //klucz główny
+    'primary key' => array('id'),
+  );
+  return $schematinstalacjibazydanych;
+}
+
+//Należy zrobić update bazy danych 
+//w bazie danych dodajemy pole uid
+function menedzerosobisty_update_7001(){
+    db_add_field('menedzerosobisty','uid',
+             array(
+            'desription' => 'uzytkownik (user).uid, tworzy swoje wpisy do menedzera ',
+            'type' => 'int',
+            'not null' => TRUE,
+            'default' => 0,
+            
+        ));
+    //Należy indeksować użytkownikowników poszczególnych 
+    //bez indeksowania nie będzie rozroznienia między użytkownikami uid
+    db_add_index('menedzerosobisty','uid',array('uid'));
+}
+ 
+ 

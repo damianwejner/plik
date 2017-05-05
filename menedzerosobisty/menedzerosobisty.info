@@ -1,0 +1,4 @@
+name = Moj Menedzer Osobisty
+core = 7.x
+dependencies[] = devel
+
