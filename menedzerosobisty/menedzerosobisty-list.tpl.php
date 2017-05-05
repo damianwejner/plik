@@ -1,34 +1,53 @@
 <?php
 /**
- * @file
  * domyślny motyw implentacji Menedzera osobistego
  *
  * Available variables:
  * - $title: tytuł .Napis na liście zadań.
  * - $items: tablica obiektów z bazy danych
  */
+   /**
+     * ====================INFORMACJA==============================
+     *  Literka " l " po funkcji return oznacza stworzenie
+     *  nowego linku w który będzie można kliknąć
+     *   przykład : return l(' Stworz nowe menedzerosobisty' , 'menedzerosobisty/new');
+     * ============================================================
+     */
 ?>
-<div class="menedzerosobisty-new-link-top"><?php echo l('Stwórz wpis', 'menedzerosobisty/new'); ?></div>
+<strong><div class="menedzerosobisty-nowy-link-gora">
+    <?php echo  l('Stwórz wpis', 'menedzerosobisty/new'); ?></div></strong>>
 <table>
-  <?php if (!empty($title)): ?>
-    <caption><?php echo $title; ?></caption>
-  <?php endif; ?>
+<?php if (!empty($title)): ?>
+<caption>
+<?php echo $title; ?>
+</caption>
+<?php endif; ?>
   <thead>
     <tr>
-      <th>Menedzer Ososbisty</th>
-      <th>Edit</th>
-      <th>Delete</th>
+      <th> <i>Menedzer Osobisty</i></th>
+      
+      <th><u>Edytuj</u></th>
+      
+      <th><u>Usun</u></th>
     </tr>
   </thead>
   <tbody>
     <?php foreach ($items as $item): ?>
       <tr>
-        <td><?php echo $item->title; ?></td>
-        <td><?php echo l(t('edit'), "menedzerosobisty/$item->id/edit"); ?></td>
-        <td><?php echo l(t('delete'), "menedzerosobisty/$item->id/delete"); ?></td>
+        <td>
+            
+          <em>  <?php echo $item->title; ?> </em>
+        </td>
+        <td>
+           <em> <?php echo l(t('Edytuj'), "menedzerosobisty/$item->id/edit"); ?></em>
+        </td>
+        <td>
+           <em> <?php echo l(t('Usun'), "menedzerosobisty/$item->id/delete"); ?></em>
+        </td>
       </tr>
     <?php endforeach; ?>
   </tbody>
 </table>
-<div class="menedzerosobisty-new-link-bottom"><?php echo l('Stwórz wpis', 'menedzerosobisty/new'); ?></div>
+<strong><div class="menedzerosobisty-nowy-link-dol">
+    <?php echo l('Stwórz wpis', 'menedzerosobisty/new'); ?></div></strong>>
 

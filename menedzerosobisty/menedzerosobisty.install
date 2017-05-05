@@ -20,6 +20,7 @@ function menedzerosobisty_schema() {
             'not null' => TRUE,
             'default' => 0,
       ),
+        // Z tej kolumny są pobierane nasze wpisy
       'title' => array(
         'description' => 'Napis w elementach menedzera',
         'type' => 'varchar',
@@ -27,12 +28,7 @@ function menedzerosobisty_schema() {
         'not null' => TRUE,
         'default' => '',
       ),
-      'done' => array(
-        'description' => 'Zrobione lub nie zrobione , status menedzera',
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
+        //W tej kolumnie jest wpisany czas utworzenia
       'created' => array(
         'description' => 'Unix timestamp w momencie tworzenia elementu',
         'type' => 'int',
@@ -44,6 +40,7 @@ function menedzerosobisty_schema() {
       'indexes' => array(
           'uid' => array ('uid'),
       ),
+      // klucze obce
       'foreign keys' => array(
        'wpisy_autor'  => array(
            'table' => 'users',
@@ -52,6 +49,7 @@ function menedzerosobisty_schema() {
            ),
        ),  
       ),
+      //klucz główny
     'primary key' => array('id'),
   );
   return $schematinstalacjibazydanych;
